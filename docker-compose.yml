@@ -1,0 +1,41 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: platform-postgres
+    environment:
+      POSTGRES_DB: platformdb
+      POSTGRES_USER: platformuser
+      POSTGRES_PASSWORD: platformpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - platform-network
+
+  app:
+    build: .
+    container_name: platform-app
+    env_file:
+      - ./app/.env
+    depends_on:
+      - postgres
+    networks:
+      - platform-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: platform-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - platform-network
+
+volumes:
+  postgres_data:
+
+networks:
+  platform-network:
